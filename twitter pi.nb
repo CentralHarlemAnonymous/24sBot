@@ -1,0 +1,1479 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.4' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     64157,       1471]
+NotebookOptionsPosition[     62023,       1423]
+NotebookOutlinePosition[     62437,       1441]
+CellTagsIndexPosition[     62394,       1438]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["playing 24s over Twitter", "Title",
+ CellChangeTimes->{{3.66948888268495*^9, 3.6694888876822357`*^9}, {
+  3.7244381071104507`*^9, 
+  3.72443811033214*^9}},ExpressionUUID->"6069a9b9-dddd-45c8-abe7-\
+2f29dc9d1dee"],
+
+Cell["January 8, 2018", "Text",
+ CellChangeTimes->{{3.670189857537796*^9, 3.670189860259686*^9}, {
+  3.724435073473048*^9, 
+  3.724435077263947*^9}},ExpressionUUID->"1612a60c-078c-4e5a-b0b0-\
+b056b66cab6f"],
+
+Cell[CellGroupData[{
+
+Cell["notes", "Section",
+ CellChangeTimes->{{3.724435086903961*^9, 
+  3.724435087343637*^9}},ExpressionUUID->"eb4bacf3-7368-411d-b4ab-\
+ccdaead1e65f"],
+
+Cell["\<\
+Written for Mathematica 11; update available freely from Wolfram for Rasberry \
+Pi if you need it.
+This notebook contains the code for dealing with Twitter. The gameplay is \
+presumed to have been precomputed elsewhere, with solutions listed in a \
+notebook called \[OpenCurlyDoubleQuote]24s-arithmetic.mx\
+\[CloseCurlyDoubleQuote] and another called \[OpenCurlyDoubleQuote]24s-fancy \
+only.mx\[CloseCurlyDoubleQuote]. You can set the paths to these files below. \
+Graphical representations of the solutions (currently presumed to be .png \
+files, though that is easily changed) should be put in folders called \
+\[OpenCurlyDoubleQuote]24s-simple\[CloseCurlyDoubleQuote] and \
+\[OpenCurlyDoubleQuote]24s-fancy-only\[CloseCurlyDoubleQuote]. The paths to \
+these folders can also be set below. The name for each png file identifies \
+what hand it solves. So the hand 2, 3, 10, 10 would have solutions in \
+\[OpenCurlyDoubleQuote]02031010-1.png\[CloseCurlyDoubleQuote], \
+\[OpenCurlyDoubleQuote]02031010-2.png\[CloseCurlyDoubleQuote], and so forth. \
+The names presume numbers in increasing order.
+
+A separate notebook called \[OpenCurlyDoubleQuote]24s w-mod.nb\
+\[CloseCurlyDoubleQuote], a companion to this bot, can create all the files \
+above.
+
+Make sure to open a Twitter account for the bot using its own e-mail address. \
+Register an \[OpenCurlyDoubleQuote]app\[CloseCurlyDoubleQuote] for the bot. \
+Create access token.\
+\>", "Text",
+ CellChangeTimes->{
+  3.724435099960129*^9, {3.726482140616683*^9, 3.726482181256735*^9}, {
+   3.726482307866034*^9, 3.726482351293342*^9}, {3.726482846234325*^9, 
+   3.726483131397032*^9}},ExpressionUUID->"e4104106-4387-41e7-952d-\
+09cd05ea248a"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["code", "Section",
+ CellChangeTimes->{{3.7264823671046762`*^9, 
+  3.7264823673960943`*^9}},ExpressionUUID->"197a8161-0588-486c-9bba-\
+b3f0d0432fd8"],
+
+Cell[CellGroupData[{
+
+Cell["utility", "Subsection",
+ CellChangeTimes->{{3.72295767124262*^9, 3.72295767688241*^9}, {
+  3.724434775386035*^9, 3.724434778640284*^9}, {3.726482375038631*^9, 
+  3.7264823753853397`*^9}},ExpressionUUID->"0e3301ad-f1a4-475b-9cc3-\
+36613c00994c"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"getIntegers", "[", "s_String", "]"}], ":=", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", "n", "}"}], ",", 
+     RowBox[{"FromDigits", "/@", 
+      RowBox[{"StringCases", "[", 
+       RowBox[{"s", ",", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"(", 
+           RowBox[{"StartOfString", "|", "Whitespace"}], ")"}], "~~", 
+          RowBox[{"n", ":", 
+           RowBox[{"DigitCharacter", ".."}]}], "~~", 
+          RowBox[{"RegularExpression", "[", "\"\<(?!\\\\.\\\\d)\>\"", "]"}]}],
+          "\[Rule]", "n"}]}], "]"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"semanticFix", "[", "in_String", "]"}], ":=", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", "cleaned", "}"}], ",", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"cleaned", "=", 
+       RowBox[{"StringReplace", "[", 
+        RowBox[{"in", ",", 
+         RowBox[{"{", 
+          RowBox[{"\"\<,\>\"", "\[Rule]", "\"\< \>\""}], "}"}]}], "]"}]}], 
+      ";", 
+      RowBox[{"StringReplace", "[", 
+       RowBox[{"cleaned", ",", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{
+           RowBox[{
+           "WordBoundary", "~~", "\"\<two\>\"", "~~", "WordBoundary"}], 
+           "\[Rule]", "\"\<2\>\""}], ",", 
+          RowBox[{
+           RowBox[{
+           "WordBoundary", "~~", "\"\<one\>\"", "~~", "WordBoundary"}], 
+           "\[Rule]", "\"\<1\>\""}], ",", 
+          RowBox[{
+           RowBox[{
+           "WordBoundary", "~~", "\"\<three\>\"", "~~", "WordBoundary"}], 
+           "\[Rule]", "\"\<3\>\""}], ",", 
+          RowBox[{
+           RowBox[{
+           "WordBoundary", "~~", "\"\<four\>\"", "~~", "WordBoundary"}], 
+           "\[Rule]", "\"\<4\>\""}], ",", 
+          RowBox[{
+           RowBox[{
+           "WordBoundary", "~~", "\"\<five\>\"", "~~", "WordBoundary"}], 
+           "\[Rule]", "\"\<5\>\""}], ",", 
+          RowBox[{
+           RowBox[{
+           "WordBoundary", "~~", "\"\<six\>\"", "~~", "WordBoundary"}], 
+           "\[Rule]", "\"\<6\>\""}], ",", 
+          RowBox[{
+           RowBox[{
+           "WordBoundary", "~~", "\"\<seven\>\"", "~~", "WordBoundary"}], 
+           "\[Rule]", "\"\<7\>\""}], ",", 
+          RowBox[{
+           RowBox[{
+           "WordBoundary", "~~", "\"\<eight\>\"", "~~", "WordBoundary"}], 
+           "\[Rule]", "\"\<8\>\""}], ",", 
+          RowBox[{
+           RowBox[{
+           "WordBoundary", "~~", "\"\<nine\>\"", "~~", "WordBoundary"}], 
+           "\[Rule]", "\"\<9\>\""}], ",", 
+          RowBox[{
+           RowBox[{
+           "WordBoundary", "~~", "\"\<ten\>\"", "~~", "WordBoundary"}], 
+           "\[Rule]", "\"\<10\>\""}]}], "}"}]}], "]"}]}]}], 
+    "\[IndentingNewLine]", "]"}]}], ";"}]}], "Input",
+ InitializationCell->True,
+ CellChangeTimes->{
+  3.722957993378455*^9, {3.72443752188588*^9, 3.7244375499150743`*^9}, {
+   3.724437631938532*^9, 3.724437710359682*^9}},
+ ExpressionUUID -> "63b79fb5-f7ba-4b7b-8f20-42f8bef61732"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"answersArithmetic", "=", 
+   RowBox[{"Import", "[", 
+    RowBox[{"FileNameJoin", "[", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"NotebookDirectory", "[", "]"}], ",", "\"\<..\>\"", ",", 
+       "\"\<24s\>\"", ",", "\"\<24s-arithmetic.mx\>\""}], "}"}], "]"}], 
+    "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"answersFancy", "=", 
+   RowBox[{"Import", "[", 
+    RowBox[{"FileNameJoin", "[", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"NotebookDirectory", "[", "]"}], ",", "\"\<..\>\"", ",", 
+       "\"\<24s\>\"", ",", "\"\<24s-fancy only.mx\>\""}], "}"}], "]"}], 
+    "]"}]}], ";"}]}], "Input",
+ InitializationCell->True,
+ CellChangeTimes->{{3.670485086701778*^9, 3.670485091461721*^9}, {
+  3.7229546132276163`*^9, 3.722954617143518*^9}, {3.722955184868072*^9, 
+  3.7229551900668163`*^9}, {3.724283212036105*^9, 3.7242832139787197`*^9}, {
+  3.724437583412085*^9, 
+  3.72443759175229*^9}},ExpressionUUID->"9ba84227-55fe-4627-8518-\
+4e0dab5be1a4"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"getAnswers", "[", 
+    RowBox[{"hand_List", ",", "solutions_List"}], "]"}], ":=", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"Select", "[", 
+      RowBox[{"solutions", ",", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"#", "[", 
+          RowBox[{"[", "1", "]"}], "]"}], "\[Equal]", 
+         RowBox[{"Sort", "[", "hand", "]"}]}], "&"}]}], "]"}], "[", 
+     RowBox[{"[", "1", "]"}], "]"}], "/.", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"surd", "\[Rule]", "Surd"}], ",", 
+      RowBox[{"log", "\[Rule]", "Log"}], ",", 
+      RowBox[{"mod", "\[Rule]", "Mod"}], ",", 
+      RowBox[{"divide", "\[Rule]", "Divide"}], ",", 
+      RowBox[{"max", "\[Rule]", "Max"}], ",", 
+      RowBox[{"min", "\[Rule]", "Min"}], ",", 
+      RowBox[{"power", "\[Rule]", "Power"}]}], "}"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{
+    RowBox[{"Options", "[", "check24", "]"}], "=", 
+    RowBox[{"{", 
+     RowBox[{"\"\<rules\>\"", "\[Rule]", "\"\<simple\>\""}], 
+     RowBox[{"(*", 
+      RowBox[{"vs", ".", " ", "fancy"}], "*)"}], "}"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"check24", "[", 
+    RowBox[{"hand_List", ",", 
+     RowBox[{"OptionsPattern", "[", "]"}]}], "]"}], ":=", 
+   RowBox[{"If", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"OptionValue", "[", "\"\<rules\>\"", "]"}], "\[Equal]", 
+      "\"\<simple\>\""}], ",", 
+     RowBox[{"getAnswers", "[", 
+      RowBox[{"hand", ",", "answersArithmetic"}], "]"}], ",", 
+     RowBox[{"getAnswers", "[", 
+      RowBox[{"hand", ",", "answersFancy"}], "]"}]}], "]"}]}], 
+  ";"}]}], "Input",
+ InitializationCell->True,
+ CellChangeTimes->{
+  3.670485099328312*^9, {3.670485156635214*^9, 3.67048528853098*^9}, {
+   3.6704927831956797`*^9, 3.670492783785769*^9}, {3.6704954188055897`*^9, 
+   3.670495427810856*^9}, {3.670495547954315*^9, 3.670495550686923*^9}, 
+   3.724434018581313*^9, {3.724434220196678*^9, 3.724434221276189*^9}},
+ ExpressionUUID -> "b40c7703-8c43-4836-9905-e1298fbfdd53"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"Options", "[", "namifier", "]"}], "=", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"\"\<index to add\>\"", "\[Rule]", "False"}], ",", 
+     RowBox[{"\"\<suffix\>\"", "\[Rule]", "\"\<.png\>\""}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{
+    RowBox[{"namifier", "[", 
+     RowBox[{"cards_List", ",", 
+      RowBox[{"OptionsPattern", "[", "]"}]}], "]"}], ":=", 
+    RowBox[{
+     RowBox[{"Module", "[", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"a", ",", "b", ",", "c", ",", "d"}], "}"}], ",", 
+       RowBox[{
+        RowBox[{"a", "=", 
+         RowBox[{"ToString", "[", 
+          RowBox[{"cards", "[", 
+           RowBox[{"[", "1", "]"}], "]"}], "]"}]}], ";", 
+        RowBox[{"b", "=", 
+         RowBox[{"ToString", "[", 
+          RowBox[{"cards", "[", 
+           RowBox[{"[", "2", "]"}], "]"}], "]"}]}], ";", 
+        RowBox[{"c", "=", 
+         RowBox[{"ToString", "[", 
+          RowBox[{"cards", "[", 
+           RowBox[{"[", "3", "]"}], "]"}], "]"}]}], ";", 
+        RowBox[{"d", "=", 
+         RowBox[{"ToString", "[", 
+          RowBox[{"cards", "[", 
+           RowBox[{"[", "4", "]"}], "]"}], "]"}]}], ";", 
+        RowBox[{
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"StringLength", "[", "a", "]"}], "==", "1"}], ",", 
+           RowBox[{"\"\<0\>\"", "<>", "a"}], ",", "a"}], "]"}], "<>", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"StringLength", "[", "b", "]"}], "==", "1"}], ",", 
+           RowBox[{"\"\<0\>\"", "<>", "b"}], ",", "b"}], "]"}], "<>", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"StringLength", "[", "c", "]"}], "==", "1"}], ",", 
+           RowBox[{"\"\<0\>\"", "<>", "c"}], ",", "c"}], "]"}], "<>", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"StringLength", "[", "d", "]"}], "==", "1"}], ",", 
+           RowBox[{"\"\<0\>\"", "<>", "d"}], ",", "d"}], "]"}]}]}]}], "]"}], "<>", 
+     RowBox[{"If", "[", 
+      RowBox[{
+       RowBox[{"IntegerQ", "[", 
+        RowBox[{"OptionValue", "[", "\"\<index to add\>\"", "]"}], "]"}], ",", 
+       RowBox[{"\"\<-\>\"", "<>", 
+        RowBox[{"ToString", "[", 
+         RowBox[{"OptionValue", "[", "\"\<index to add\>\"", "]"}], "]"}]}], 
+       ",", "\"\<\>\""}], "]"}], "<>", 
+     RowBox[{"OptionValue", "[", "\"\<suffix\>\"", "]"}]}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"Options", "[", "showAnswer", "]"}], "=", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"\"\<noisy\>\"", "\[Rule]", "False"}], ",", 
+     RowBox[{"\"\<output\>\"", "\[Rule]", "Length"}], ",", 
+     RowBox[{"\"\<pixNo\>\"", "\[Rule]", "Automatic"}], ",", 
+     RowBox[{"\"\<simplePath\>\"", "\[Rule]", 
+      RowBox[{"FileNameJoin", "[", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"NotebookDirectory", "[", "]"}], ",", "\"\<..\>\"", ",", 
+         "\"\<24s\>\"", ",", "\"\<24s-simple\>\""}], "}"}], "]"}]}], ",", 
+     RowBox[{"\"\<fancyPath\>\"", "\[Rule]", 
+      RowBox[{"FileNameJoin", "[", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"NotebookDirectory", "[", "]"}], ",", "\"\<..\>\"", ",", 
+         "\"\<24s\>\"", ",", "\"\<24s-fancy-only\>\""}], "}"}], "]"}]}]}], 
+    "}"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"showAnswer", "[", 
+    RowBox[{"combo_List", ",", "whichPath_String", ",", 
+     RowBox[{"OptionsPattern", "[", "]"}]}], "]"}], ":=", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"path", ",", "regex", ",", "namen", ",", "pixpath"}], "}"}], 
+     ",", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"SetDirectory", "[", "]"}], ";", "\[IndentingNewLine]", 
+      RowBox[{"path", "=", 
+       RowBox[{"Switch", "[", 
+        RowBox[{"whichPath", ",", "\"\<simple\>\"", ",", 
+         RowBox[{"OptionValue", "[", "\"\<simplePath\>\"", "]"}], ",", 
+         "\"\<fancy\>\"", ",", 
+         RowBox[{"OptionValue", "[", "\"\<fancyPath\>\"", "]"}]}], "]"}]}], 
+      ";", "\[IndentingNewLine]", 
+      RowBox[{"If", "[", 
+       RowBox[{
+        RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
+        RowBox[{"Print", "[", 
+         RowBox[{"\"\<path: \>\"", ",", "path"}], "]"}]}], "]"}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"SetDirectory", "[", "path", "]"}], ";", "\[IndentingNewLine]", 
+      RowBox[{"regex", "=", 
+       RowBox[{"namifier", "[", 
+        RowBox[{
+         RowBox[{"Sort", "[", "combo", "]"}], ",", 
+         RowBox[{"\"\<suffix\>\"", "\[Rule]", "\"\<\>\""}]}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"If", "[", 
+       RowBox[{
+        RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
+        RowBox[{"Print", "[", 
+         RowBox[{"\"\<regex: \>\"", ",", "regex"}], "]"}]}], "]"}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"namen", "=", 
+       RowBox[{"FileNames", "[", 
+        RowBox[{"regex", "<>", "\"\<*\>\""}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"If", "[", 
+       RowBox[{
+        RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
+        RowBox[{"Print", "[", 
+         RowBox[{"\"\<namen: \>\"", ",", "namen"}], "]"}]}], "]"}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"Switch", "[", 
+       RowBox[{
+        RowBox[{"OptionValue", "[", "\"\<output\>\"", "]"}], ",", "Length", 
+        ",", 
+        RowBox[{"Length", "[", "namen", "]"}], ",", "\"\<file names\>\"", ",",
+         "namen", ",", "\"\<one pix\>\"", ",", 
+        RowBox[{
+         RowBox[{"pixpath", "=", 
+          RowBox[{"FileNameJoin", "[", 
+           RowBox[{"{", 
+            RowBox[{"path", ",", 
+             RowBox[{"regex", "<>", "\"\<-\>\"", "<>", 
+              RowBox[{"ToString", "[", 
+               RowBox[{"RandomInteger", "[", 
+                RowBox[{"{", 
+                 RowBox[{"1", ",", 
+                  RowBox[{"Length", "[", "namen", "]"}]}], "}"}], "]"}], 
+               "]"}], "<>", "\"\<.png\>\""}]}], "}"}], "]"}]}], ";", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"Length", "[", "namen", "]"}], ">", "0"}], ",", 
+           RowBox[{
+            RowBox[{"If", "[", 
+             RowBox[{
+              RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
+              RowBox[{"Print", "[", 
+               RowBox[{"\"\<pixpath: \>\"", ",", "pixpath"}], "]"}]}], "]"}], 
+            ";", 
+            RowBox[{"Import", "[", "pixpath", "]"}]}]}], "]"}]}], ",", "_", 
+        ",", 
+        RowBox[{"\"\<I dunno what '\>\"", "<>", 
+         RowBox[{"OptionValue", "[", "\"\<output\>\"", "]"}], "<>", 
+         "\"\<' is.\>\""}]}], "\[IndentingNewLine]", "]"}]}]}], 
+    "\[IndentingNewLine]", "]"}]}], ";"}]}], "Input",
+ InitializationCell->True,
+ CellChangeTimes->{{3.67049378410085*^9, 3.670493815912183*^9}, {
+   3.6704951680025673`*^9, 3.670495168309198*^9}, {3.6704952630170097`*^9, 
+   3.6704953370101748`*^9}, 3.6704989648419724`*^9, {3.67049901146196*^9, 
+   3.6704990201828403`*^9}, {3.670499379531456*^9, 3.670499406399796*^9}, {
+   3.670500443211831*^9, 3.670500464547782*^9}, {3.670500915786536*^9, 
+   3.670500946379847*^9}, {3.670501015678821*^9, 3.670501058004054*^9}, {
+   3.671398900920219*^9, 3.67139890169588*^9}, {3.7229558945432043`*^9, 
+   3.722955907640254*^9}, {3.722956232281755*^9, 3.722956232470746*^9}, 
+   3.722956533952426*^9, {3.722956690722332*^9, 3.722956704555188*^9}, {
+   3.7229615842243433`*^9, 3.7229615970787*^9}, {3.722961640384673*^9, 
+   3.722961700799479*^9}, {3.722961758352654*^9, 3.722961770375135*^9}, 
+   3.724434655978957*^9},ExpressionUUID->"97e4a861-bb6e-4ab9-a1cd-\
+8908d0db9777"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["response", "Subsection",
+ CellChangeTimes->{{3.669556605222492*^9, 3.669556611812869*^9}, {
+  3.7264822994833593`*^9, 3.72648229987674*^9}, {3.726482377957703*^9, 
+  3.726482378397835*^9}},ExpressionUUID->"faca04a3-c57d-4b1d-9a07-\
+7cf52e569d74"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{
+    RowBox[{"check24sReport", "[", "inThing_Association", "]"}], ":=", 
+    RowBox[{"Module", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"test1", ",", "test2", ",", "ok"}], "}"}], ",", 
+      "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"ok", "=", 
+        RowBox[{"If", "[", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"MemberQ", "[", 
+            RowBox[{
+             RowBox[{"Keys", "[", "inThing", "]"}], ",", "\"\<numbers\>\""}], 
+            "]"}], "&&", 
+           RowBox[{
+            RowBox[{"Length", "[", 
+             RowBox[{"inThing", "[", 
+              RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], "]"}], "\[Equal]",
+             "4"}], "&&", 
+           RowBox[{"VectorQ", "[", 
+            RowBox[{
+             RowBox[{"inThing", "[", 
+              RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], ",", "IntegerQ"}],
+             "]"}]}], ",", "True", ",", "False"}], "]"}]}], ";", 
+       RowBox[{"(*", " ", 
+        RowBox[{
+         RowBox[{
+         "input", " ", "should", " ", "be", " ", "sanitized", " ", "before", 
+          " ", "we", " ", "get", " ", "here", " ", "but", " ", "if", " ", 
+          "it", " ", 
+          RowBox[{"isn", "'"}], "t"}], ",", " ", 
+         RowBox[{"reports", " ", "it", " ", 
+          RowBox[{"can", "'"}], "t", " ", "find", " ", "any", " ", 
+          "matches"}]}], " ", "*)"}], "\[IndentingNewLine]", 
+       RowBox[{"If", "[", 
+        RowBox[{"ok", ",", "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{"test1", "=", 
+           RowBox[{"check24", "[", 
+            RowBox[{
+             RowBox[{"inThing", "[", 
+              RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], ",", 
+             RowBox[{"\"\<rules\>\"", "\[Rule]", "\"\<simple\>\""}]}], 
+            "]"}]}], ";", 
+          RowBox[{"test2", "=", 
+           RowBox[{"check24", "[", 
+            RowBox[{
+             RowBox[{"inThing", "[", 
+              RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], ",", 
+             RowBox[{"\"\<rules\>\"", "\[Rule]", "\"\<fancy\>\""}]}], "]"}]}],
+           ";"}], ",", 
+         RowBox[{"(*", "else", "*)"}], "\[IndentingNewLine]", 
+         RowBox[{"test1", "=", 
+          RowBox[{"test2", "=", 
+           RowBox[{"{", "}"}]}]}]}], "\[IndentingNewLine]", "]"}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"<|", 
+        RowBox[{
+         RowBox[{"\"\<simple 24 solution\>\"", "\[Rule]", 
+          RowBox[{"If", "[", 
+           RowBox[{
+            RowBox[{"ok", "&&", 
+             RowBox[{
+              RowBox[{"Length", "[", 
+               RowBox[{"test1", "[", 
+                RowBox[{"[", "2", "]"}], "]"}], "]"}], ">", "0"}]}], ",", 
+            "True", ",", "False"}], "]"}]}], ",", 
+         RowBox[{"\"\<fancy 24 solution\>\"", "\[Rule]", 
+          RowBox[{"If", "[", 
+           RowBox[{
+            RowBox[{"ok", "&&", 
+             RowBox[{
+              RowBox[{"Length", "[", 
+               RowBox[{"test2", "[", 
+                RowBox[{"[", "2", "]"}], "]"}], "]"}], ">", "0"}]}], ",", 
+            "True", ",", "False"}], "]"}]}]}], "|>"}]}]}], 
+     "\[IndentingNewLine]", "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"Options", "[", "craftMessage", "]"}], "=", 
+   RowBox[{"{", 
+    RowBox[{"\"\<respond to bad hands\>\"", "\[Rule]", "False"}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"craftMessage", "[", 
+    RowBox[{"tweet_Association", ",", "serviceConnection_", ",", 
+     RowBox[{"OptionsPattern", "[", "]"}]}], "]"}], ":=", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"ok", ",", "deeplookup", ",", "username"}], "}"}], ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"ok", "=", 
+       RowBox[{"Apply", "[", 
+        RowBox[{"And", ",", 
+         RowBox[{"Map", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"MemberQ", "[", 
+             RowBox[{
+              RowBox[{"Keys", "[", "tweet", "]"}], ",", "#"}], "]"}], "&"}], 
+           ",", 
+           RowBox[{"{", 
+            RowBox[{
+            "\"\<ID\>\"", ",", "\"\<game on?\>\"", ",", "\"\<numbers\>\""}], 
+            "}"}]}], "]"}]}], "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"If", "[", 
+       RowBox[{"ok", ",", "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"deeplookup", "=", 
+          RowBox[{"ServiceExecute", "[", 
+           RowBox[{"serviceConnection", ",", "\"\<GetTweet\>\"", ",", 
+            RowBox[{"\"\<TweetID\>\"", "\[Rule]", 
+             RowBox[{"tweet", "[", 
+              RowBox[{"[", "\"\<ID\>\"", "]"}], "]"}]}]}], "]"}]}], ";", 
+         "\[IndentingNewLine]", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"Head", "[", "deeplookup", "]"}], "===", "Dataset"}], ",", 
+           RowBox[{"username", "=", 
+            RowBox[{"deeplookup", "[", 
+             RowBox[{"[", "\"\<Username\>\"", "]"}], "]"}]}], ",", 
+           RowBox[{"(*", "else", "*)"}], 
+           RowBox[{
+            RowBox[{"username", "=", "\"\<unk.\>\""}], ";", 
+            RowBox[{"ok", "=", "False"}]}]}], "]"}], ";"}]}], 
+       "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", 
+      RowBox[{"Which", "[", "\[IndentingNewLine]", 
+       RowBox[{"(*", 
+        RowBox[{"no", " ", "username"}], "*)"}], 
+       RowBox[{
+        RowBox[{"ok", "=", "False"}], ",", 
+        RowBox[{"<|", 
+         RowBox[{"\"\<Out Message\>\"", "\[Rule]", 
+          RowBox[{"\"\<Failed to retrieve username for tweet \>\"", "<>", 
+           RowBox[{"ToString", "[", 
+            RowBox[{"tweet", "[", 
+             RowBox[{"[", "\"\<ID\>\"", "]"}], "]"}], "]"}]}]}], "|>"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"(*", 
+         RowBox[{"too", " ", "many", " ", "numbers"}], "*)"}], 
+        RowBox[{
+         RowBox[{"OptionValue", "[", "\"\<respond to bad hands\>\"", "]"}], "&&", 
+         RowBox[{"!", 
+          RowBox[{"tweet", "[", 
+           RowBox[{"[", "\"\<game on?\>\"", "]"}], "]"}]}], "&&", 
+         RowBox[{
+          RowBox[{"Length", "[", 
+           RowBox[{"tweet", "[", 
+            RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], "]"}], ">", "4"}]}],
+         ",", "\[IndentingNewLine]", 
+        RowBox[{"<|", 
+         RowBox[{"\"\<Out Message\>\"", "\[Rule]", 
+          RowBox[{
+          "\"\<@\>\"", "<>", "username", "<>", 
+           "\"\< Sorry, I see more than four numbers here. Review the rules \
+at http://www.wheels.org/monkeywrench/?page_id=882\>\""}]}], "|>"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"(*", 
+         RowBox[{"not", " ", "enough", " ", "numbers"}], "*)"}], 
+        RowBox[{
+         RowBox[{"OptionValue", "[", "\"\<respond to bad hands\>\"", "]"}], "&&", 
+         RowBox[{"!", 
+          RowBox[{"tweet", "[", 
+           RowBox[{"[", "\"\<game on?\>\"", "]"}], "]"}]}], "&&", 
+         RowBox[{
+          RowBox[{"Length", "[", 
+           RowBox[{"tweet", "[", 
+            RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], "]"}], "<", "4"}]}],
+         ",", "\[IndentingNewLine]", 
+        RowBox[{"<|", 
+         RowBox[{"\"\<Out Message\>\"", "\[Rule]", 
+          RowBox[{
+          "\"\<@\>\"", "<>", "username", "<>", 
+           "\"\< Sorry, don't see four numbers here. Review the rules at \
+http://www.wheels.org/monkeywrench/?page_id=882\>\""}]}], "|>"}], ",", 
+        RowBox[{"(*", 
+         RowBox[{"numbers", " ", "out", " ", "of", " ", "bounds"}], "*)"}], 
+        RowBox[{
+         RowBox[{
+          RowBox[{"OptionValue", "[", "\"\<respond to bad hands\>\"", "]"}], "&&", 
+          RowBox[{"!", 
+           RowBox[{"tweet", "[", 
+            RowBox[{"[", "\"\<game on?\>\"", "]"}], "]"}]}], "&&", 
+          RowBox[{
+           RowBox[{"Min", "[", 
+            RowBox[{"tweet", "[", 
+             RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], "]"}], "<", 
+           "1"}]}], "||", 
+         RowBox[{
+          RowBox[{"Max", "[", 
+           RowBox[{"tweet", "[", 
+            RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], "]"}], ">", 
+          "10"}]}], ",", "\[IndentingNewLine]", 
+        RowBox[{"<|", 
+         RowBox[{"\"\<Out Message\>\"", "\[Rule]", 
+          RowBox[{
+          "\"\<@\>\"", "<>", "username", "<>", 
+           "\"\< Sorry, numbers must be in the range from 1 to 10. Review the \
+rules at http://www.wheels.org/monkeywrench/?page_id=882\>\""}]}], "|>"}], 
+        ",", "\[IndentingNewLine]", 
+        RowBox[{"(*", "simple", "*)"}], 
+        RowBox[{
+         RowBox[{"tweet", "[", 
+          RowBox[{"[", "\"\<game on?\>\"", "]"}], "]"}], "&&", 
+         RowBox[{"tweet", "[", 
+          RowBox[{"[", "\"\<simple 24 solution\>\"", "]"}], "]"}]}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"<|", 
+         RowBox[{
+          RowBox[{"\"\<Out Message\>\"", "\[Rule]", 
+           RowBox[{
+           "\"\<@\>\"", "<>", "username", "<>", 
+            "\"\< Here is a simple solution to that.\>\""}]}], ",", 
+          RowBox[{"\"\<Image\>\"", "\[Rule]", 
+           RowBox[{"showAnswer", "[", 
+            RowBox[{
+             RowBox[{"tweet", "[", 
+              RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], ",", 
+             "\"\<simple\>\"", ",", 
+             RowBox[{"\"\<noisy\>\"", "\[Rule]", "False"}], ",", 
+             RowBox[{"\"\<output\>\"", "\[Rule]", "\"\<one pix\>\""}]}], 
+            "]"}]}]}], "|>"}], ",", "\[IndentingNewLine]", 
+        RowBox[{"(*", "fancy", "*)"}], 
+        RowBox[{
+         RowBox[{"tweet", "[", 
+          RowBox[{"[", "\"\<game on?\>\"", "]"}], "]"}], "&&", 
+         RowBox[{"!", 
+          RowBox[{"tweet", "[", 
+           RowBox[{"[", "\"\<simple 24 solution\>\"", "]"}], "]"}]}], "&&", 
+         RowBox[{"tweet", "[", 
+          RowBox[{"[", "\"\<fancy 24 solution\>\"", "]"}], "]"}]}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"<|", 
+         RowBox[{
+          RowBox[{"\"\<Out Message\>\"", "\[Rule]", 
+           RowBox[{
+           "\"\<@\>\"", "<>", "username", "<>", 
+            "\"\< I can't find a simple solution. Here is a fancy \
+one.\>\""}]}], ",", 
+          RowBox[{"\"\<Image\>\"", "\[Rule]", 
+           RowBox[{"showAnswer", "[", 
+            RowBox[{
+             RowBox[{"tweet", "[", 
+              RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], ",", 
+             "\"\<fancy\>\"", ",", 
+             RowBox[{"\"\<noisy\>\"", "\[Rule]", "False"}], ",", 
+             RowBox[{"\"\<output\>\"", "\[Rule]", "\"\<one pix\>\""}]}], 
+            "]"}]}]}], "|>"}], ",", "\[IndentingNewLine]", 
+        RowBox[{"(*", 
+         RowBox[{"no", " ", "solutions"}], "*)"}], 
+        RowBox[{
+         RowBox[{"tweet", "[", 
+          RowBox[{"[", "\"\<game on?\>\"", "]"}], "]"}], "&&", 
+         RowBox[{"!", 
+          RowBox[{"tweet", "[", 
+           RowBox[{"[", "\"\<simple 24 solution\>\"", "]"}], "]"}]}], "&&", 
+         RowBox[{"!", 
+          RowBox[{"tweet", "[", 
+           RowBox[{"[", "\"\<fancy 24 solution\>\"", "]"}], "]"}]}]}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"<|", 
+         RowBox[{"\"\<Out Message\>\"", "\[Rule]", 
+          RowBox[{
+          "\"\<@\>\"", "<>", "username", "<>", "\"\< No solutions.\>\""}]}], 
+         "|>"}], ",", "\[IndentingNewLine]", 
+        RowBox[{"(*", 
+         RowBox[{"fail", " ", "and", " ", "report"}], "*)"}], 
+        RowBox[{"OptionValue", "[", "\"\<respond to bad hands\>\"", "]"}], 
+        ",", 
+        RowBox[{"<|", 
+         RowBox[{"\"\<Out Message\>\"", "\[Rule]", 
+          RowBox[{
+          "\"\<@\>\"", "<>", "username", "<>", 
+           "\"\< craftMessage[] failed.\>\""}]}], "|>"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"(*", "fail", "*)"}], 
+        RowBox[{"!", 
+         RowBox[{"OptionValue", "[", "\"\<respond to bad hands\>\"", "]"}]}], 
+        ",", 
+        RowBox[{
+         RowBox[{"Message", "[", 
+          RowBox[{
+           RowBox[{"craftMessage", "::", "unkError"}], ",", "tweet"}], "]"}], 
+         ";", 
+         RowBox[{"<|", 
+          RowBox[{"\"\<Out Message\>\"", "\[Rule]", "Null"}], "|>"}]}]}], 
+       "]"}]}]}], "\[IndentingNewLine]", "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{
+    RowBox[{"craftMessage", "::", "unkError"}], "=", 
+    "\"\<unknown error on tweet `1`\>\""}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"Options", "[", "searchForText", "]"}], "=", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"\"\<noisy\>\"", "\[Rule]", "\"\<False\>\""}], ",", 
+     RowBox[{"\"\<tweet for real\>\"", "\[Rule]", "False"}], ",", 
+     RowBox[{"\"\<count\>\"", "\[Rule]", "50"}], ",", 
+     RowBox[{"\"\<noisy count\>\"", "\[Rule]", "1"}], ",", 
+     RowBox[{"\"\<response DB path\>\"", "\[Rule]", 
+      RowBox[{"FileNameJoin", "[", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"NotebookDirectory", "[", "]"}], ",", 
+         "\"\<globalListOfTweetIDsAlreadyRespondedTo.mx\>\""}], "}"}], 
+       "]"}]}]}], "}"}]}], ";", 
+  RowBox[{
+   RowBox[{"searchForText", "[", 
+    RowBox[{
+     RowBox[{"strs_", "/;", 
+      RowBox[{"VectorQ", "[", 
+       RowBox[{"strs", ",", "StringQ"}], "]"}]}], ",", "serviceConnection_", 
+     ",", 
+     RowBox[{"OptionsPattern", "[", "]"}]}], "]"}], ":=", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+      "ok", ",", "rawSearch", ",", "semanticNumbers", ",", "summaryA", ",", 
+       "n", ",", "oldIDs"}], "}"}], ",", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"ok", "=", "True"}], ";", "\[IndentingNewLine]", 
+      RowBox[{"oldIDs", "=", 
+       RowBox[{"Import", "[", 
+        RowBox[{"OptionValue", "[", "\"\<response DB path\>\"", "]"}], 
+        "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"ok", "=", 
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{"ListQ", "[", "oldIDs", "]"}], ",", "True", ",", 
+         RowBox[{
+          RowBox[{"Message", "[", 
+           RowBox[{
+            RowBox[{"searchForText", "::", "err"}], ",", 
+            "\"\<oldIDs not a list\>\""}], "]"}], ";", "False"}]}], "]"}]}], 
+      ";", "\[IndentingNewLine]", 
+      RowBox[{"rawSearch", "=", 
+       RowBox[{"If", "[", 
+        RowBox[{"ok", ",", 
+         RowBox[{"Map", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"ServiceExecute", "[", 
+             RowBox[{"serviceConnection", ",", "\"\<TweetSearch\>\"", ",", 
+              RowBox[{"\"\<Query\>\"", "\[Rule]", 
+               StyleBox["#", "MessageName"]}]}], "]"}], "&"}], ",", "strs"}], 
+          "]"}], ",", 
+         RowBox[{"{", "}"}]}], "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"rawSearch", "=", 
+       RowBox[{"Apply", "[", 
+        RowBox[{"Join", ",", 
+         RowBox[{"Select", "[", 
+          RowBox[{"rawSearch", ",", 
+           RowBox[{
+            RowBox[{
+             RowBox[{"Length", "[", "#", "]"}], ">", "0"}], "&"}]}], "]"}]}], 
+        "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"If", "[", 
+       RowBox[{
+        RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
+        RowBox[{"Print", "[", 
+         RowBox[{"\"\<rawSearch: \>\"", ",", "rawSearch"}], "]"}]}], "]"}], 
+      ";", "\[IndentingNewLine]", 
+      RowBox[{"rawSearch", "=", 
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{
+           RowBox[{"Head", "[", "rawSearch", "]"}], "===", "Dataset"}], "&&", 
+          RowBox[{
+           RowBox[{"Length", "[", "rawSearch", "]"}], ">", "0"}]}], ",", 
+         RowBox[{"Normal", "[", "rawSearch", "]"}], ",", 
+         RowBox[{
+          RowBox[{"ok", "=", "False"}], ";", 
+          RowBox[{"Message", "[", 
+           RowBox[{
+            RowBox[{"searchForText", "::", "err"}], ",", 
+            "\"\<rawsearch did not return a list\>\""}], "]"}], ";", 
+          "rawSearch"}]}], "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"ok", "=", 
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{"ok", "&&", 
+          RowBox[{
+           RowBox[{"Length", "[", "rawSearch", "]"}], ">", "0"}]}], ",", 
+         "True", ",", 
+         RowBox[{
+          RowBox[{"Message", "[", 
+           RowBox[{"searchForText", "::", "noHits"}], "]"}], ";", "False"}]}],
+         "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"If", "[", 
+       RowBox[{"ok", ",", "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"n", "=", 
+          RowBox[{"OptionValue", "[", "\"\<noisy count\>\"", "]"}]}], ";", 
+         "\[IndentingNewLine]", 
+         RowBox[{"(*", 
+          RowBox[{
+           RowBox[{"If", "[", 
+            RowBox[{
+             RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
+             RowBox[{"Print", "[", 
+              RowBox[{"\"\<rawSearch returned \>\"", ",", 
+               RowBox[{"ToString", "[", 
+                RowBox[{"Length", "[", "rawSearch", "]"}], "]"}], ",", 
+               "\"\< hits. rawSearch[[first \>\"", ",", 
+               RowBox[{"ToString", "@", "n"}], ",", "\"\<]]: \>\"", ",", 
+               RowBox[{"Take", "[", 
+                RowBox[{"rawSearch", ",", 
+                 RowBox[{"UpTo", "[", "n", "]"}]}], "]"}]}], "]"}]}], "]"}], 
+           ";"}], "*)"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
+         RowBox[{"summaryA", "=", 
+          RowBox[{"Map", "[", 
+           RowBox[{
+            RowBox[{
+             RowBox[{"Append", "[", 
+              RowBox[{"#", ",", 
+               RowBox[{"\"\<already responded to\>\"", "\[Rule]", 
+                RowBox[{"MemberQ", "[", 
+                 RowBox[{"oldIDs", ",", 
+                  RowBox[{"#", "[", 
+                   RowBox[{"[", "\"\<ID\>\"", "]"}], "]"}]}], "]"}]}]}], 
+              "]"}], "&"}], ",", "rawSearch"}], "]"}]}], ";", 
+         "\[IndentingNewLine]", 
+         RowBox[{"ok", "=", 
+          RowBox[{"If", "[", 
+           RowBox[{
+            RowBox[{"ok", "&&", 
+             RowBox[{"VectorQ", "[", 
+              RowBox[{"summaryA", ",", "AssociationQ"}], "]"}]}], ",", "True",
+             ",", 
+            RowBox[{
+             RowBox[{"Message", "[", 
+              RowBox[{
+               RowBox[{"searchForText", "::", "err"}], ",", 
+               "\"\<summaryA not a Vector after oldIDs check\>\""}], "]"}], 
+             ";", "False"}]}], "]"}]}], ";", "\[IndentingNewLine]", 
+         RowBox[{"summaryA", " ", "=", " ", 
+          RowBox[{"Select", "[", 
+           RowBox[{"summaryA", ",", 
+            RowBox[{
+             RowBox[{"!", 
+              RowBox[{"#", "[", 
+               RowBox[{"[", "\"\<already responded to\>\"", "]"}], "]"}]}], 
+             "&"}]}], "]"}]}], ";", "\[IndentingNewLine]", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
+           RowBox[{"Print", "[", 
+            RowBox[{
+             RowBox[{"Length", "[", "summaryA", "]"}], ",", 
+             "\"\< tweet(s) not yet responded to.\>\""}], "]"}]}], "]"}], ";",
+          "\[IndentingNewLine]", "\[IndentingNewLine]", 
+         RowBox[{"semanticNumbers", "=", 
+          RowBox[{"Map", "[", 
+           RowBox[{
+            RowBox[{
+             RowBox[{"getIntegers", "@", 
+              RowBox[{"semanticFix", "[", 
+               RowBox[{"#", "[", 
+                RowBox[{"[", "\"\<Text\>\"", "]"}], "]"}], "]"}]}], "&"}], 
+            ",", "summaryA"}], "]"}]}], ";", "\[IndentingNewLine]", 
+         RowBox[{"semanticNumbers", "=", 
+          RowBox[{"Map", "[", 
+           RowBox[{
+            RowBox[{
+             RowBox[{"Select", "[", 
+              RowBox[{"#", ",", 
+               RowBox[{
+                RowBox[{"1", "\[LessEqual]", "#", "\[LessEqual]", "10"}], 
+                "&"}]}], "]"}], "&"}], ",", "semanticNumbers"}], "]"}]}], ";", 
+         RowBox[{"(*", " ", 
+          RowBox[{
+          "will", " ", "strip", " ", "out", " ", "all", " ", "sorts", " ", 
+           "of", " ", "stuff"}], " ", "*)"}], "\[IndentingNewLine]", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
+           RowBox[{"Print", "[", 
+            RowBox[{"\"\<semantic numbers[[first \>\"", ",", 
+             RowBox[{"ToString", "@", "n"}], ",", "\"\<]]: \>\"", ",", 
+             RowBox[{"Take", "[", 
+              RowBox[{"semanticNumbers", ",", 
+               RowBox[{"UpTo", "[", "n", "]"}]}], "]"}]}], "]"}]}], "]"}], 
+         ";", "\[IndentingNewLine]", 
+         RowBox[{"summaryA", "=", 
+          RowBox[{"MapThread", "[", 
+           RowBox[{
+            RowBox[{
+             RowBox[{"Append", "[", 
+              RowBox[{"#1", ",", 
+               RowBox[{"<|", 
+                RowBox[{"\"\<numbers\>\"", "\[Rule]", "#2"}], "|>"}]}], "]"}],
+              "&"}], ",", 
+            RowBox[{"{", 
+             RowBox[{"summaryA", ",", "semanticNumbers"}], "}"}]}], "]"}]}], 
+         ";", "\[IndentingNewLine]", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
+           RowBox[{"Print", "[", 
+            RowBox[{"\"\<summary association[[first \>\"", ",", 
+             RowBox[{"ToString", "@", "n"}], ",", "\"\<]]a: \>\"", ",", 
+             RowBox[{"Take", "[", 
+              RowBox[{"summaryA", ",", 
+               RowBox[{"UpTo", "[", "n", "]"}]}], "]"}]}], "]"}]}], "]"}], 
+         ";", "\[IndentingNewLine]", 
+         RowBox[{"(*", " ", 
+          RowBox[{"game", " ", 
+           RowBox[{"on", "?"}]}], " ", "*)"}], "\[IndentingNewLine]", 
+         RowBox[{"summaryA", "=", 
+          RowBox[{"Map", "[", 
+           RowBox[{
+            RowBox[{
+             RowBox[{"Append", "[", 
+              RowBox[{"#", ",", 
+               RowBox[{"\"\<game on?\>\"", "\[Rule]", 
+                RowBox[{"If", "[", 
+                 RowBox[{
+                  RowBox[{
+                   RowBox[{"ListQ", "[", 
+                    RowBox[{"#", "[", 
+                    RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], "]"}], "&&", 
+                   RowBox[{
+                    RowBox[{"Length", "[", 
+                    RowBox[{"#", "[", 
+                    RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], "]"}], 
+                    "\[Equal]", "4"}], 
+                   RowBox[{"(*", " ", 
+                    RowBox[{
+                    "not", " ", "sure", " ", "we", " ", "want", " ", "that", 
+                    " ", "part"}], "*)"}], "&&", 
+                   RowBox[{
+                    RowBox[{"Length", "[", 
+                    RowBox[{"Select", "[", 
+                    RowBox[{
+                    RowBox[{"#", "[", 
+                    RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], ",", 
+                    RowBox[{
+                    RowBox[{"1", "\[LessEqual]", "#", "\[LessEqual]", "10"}], 
+                    "&"}]}], "]"}], "]"}], "==", "4"}]}], ",", "True", ",", 
+                  "False"}], "]"}]}]}], "]"}], "&"}], ",", "summaryA"}], 
+           "]"}]}], ";", "\[IndentingNewLine]", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
+           RowBox[{"Print", "[", 
+            RowBox[{"\"\<summary association[[first \>\"", ",", 
+             RowBox[{"ToString", "@", "n"}], ",", "\"\<]]b: \>\"", ",", 
+             RowBox[{"Take", "[", 
+              RowBox[{"summaryA", ",", 
+               RowBox[{"UpTo", "[", "n", "]"}]}], "]"}]}], "]"}]}], "]"}], 
+         ";", "\[IndentingNewLine]", 
+         RowBox[{"(*", 
+          RowBox[{
+          "appends", " ", "simple", " ", "and", " ", "fancy", " ", "solution",
+            " ", "test"}], "*)"}], "\[IndentingNewLine]", 
+         RowBox[{"summaryA", "=", 
+          RowBox[{"Map", "[", 
+           RowBox[{
+            RowBox[{
+             RowBox[{"Append", "[", 
+              RowBox[{"#", ",", 
+               RowBox[{"check24sReport", "[", "#", "]"}]}], "]"}], "&"}], ",",
+             "summaryA"}], "]"}]}], ";", "\[IndentingNewLine]", 
+         RowBox[{"ok", "=", 
+          RowBox[{"If", "[", 
+           RowBox[{
+            RowBox[{"ok", "&&", 
+             RowBox[{"VectorQ", "[", 
+              RowBox[{"summaryA", ",", "AssociationQ"}], "]"}]}], ",", "True",
+             ",", 
+            RowBox[{
+             RowBox[{"Message", "[", 
+              RowBox[{
+               RowBox[{"searchForText", "::", "err"}], ",", 
+               "\"\<summaryA not a Vector after check24sReport[]\>\""}], 
+              "]"}], ";", "False"}]}], "]"}]}], ";", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
+           RowBox[{"Print", "[", 
+            RowBox[{"\"\<summary association[[first \>\"", ",", 
+             RowBox[{"ToString", "@", "n"}], ",", "\"\<]]c: \>\"", ",", 
+             RowBox[{"Take", "[", 
+              RowBox[{"summaryA", ",", 
+               RowBox[{"UpTo", "[", "n", "]"}]}], "]"}]}], "]"}]}], "]"}], 
+         ";", "\[IndentingNewLine]", 
+         RowBox[{"(*", " ", 
+          RowBox[{"craft", " ", "message"}], " ", "*)"}], 
+         "\[IndentingNewLine]", 
+         RowBox[{"summaryA", "=", 
+          RowBox[{"Map", "[", 
+           RowBox[{
+            RowBox[{
+             RowBox[{"If", "[", 
+              RowBox[{
+               RowBox[{"#", "[", 
+                RowBox[{"[", "\"\<game on?\>\"", "]"}], "]"}], ",", 
+               RowBox[{"Append", "[", 
+                RowBox[{"#", ",", 
+                 RowBox[{"craftMessage", "[", 
+                  RowBox[{"#", ",", "serviceConnection"}], "]"}]}], "]"}], 
+               ",", "#"}], "]"}], "&"}], ",", "summaryA"}], "]"}]}], ";", 
+         "\[IndentingNewLine]", 
+         RowBox[{"ok", "=", 
+          RowBox[{"If", "[", 
+           RowBox[{
+            RowBox[{"ok", "&&", 
+             RowBox[{"VectorQ", "[", 
+              RowBox[{"summaryA", ",", "AssociationQ"}], "]"}]}], ",", "True",
+             ",", 
+            RowBox[{
+             RowBox[{"Message", "[", 
+              RowBox[{
+               RowBox[{"searchForText", "::", "err"}], ",", 
+               "\"\<summaryA not a vector after craftMessage[]. \>\""}], 
+              "]"}], ";", "False"}]}], "]"}]}], ";", "\[IndentingNewLine]", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
+           RowBox[{"Print", "[", 
+            RowBox[{"\"\<summary association[[first \>\"", ",", 
+             RowBox[{"ToString", "@", "n"}], ",", "\"\<]]d: \>\"", ",", 
+             RowBox[{"Take", "[", 
+              RowBox[{"summaryA", ",", 
+               RowBox[{"UpTo", "[", "n", "]"}]}], "]"}]}], "]"}]}], "]"}], 
+         ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
+           RowBox[{"Print", "[", 
+            RowBox[{"\"\<final summaryA: \>\"", ",", "summaryA"}], "]"}]}], 
+          "]"}], ";", "\[IndentingNewLine]", 
+         RowBox[{"If", "[", 
+          RowBox[{"ok", ",", "\[IndentingNewLine]", 
+           RowBox[{"(*", 
+            RowBox[{
+             RowBox[{"If", "[", 
+              RowBox[{
+               RowBox[{
+                RowBox[{"Length", "[", "summaryA2", "]"}], "\[NotEqual]", 
+                RowBox[{"Length", "[", "summaryA", "]"}]}], ",", 
+               RowBox[{"Message", "[", 
+                RowBox[{
+                 RowBox[{"searchForHashtag", "::", "hitsButOld"}], ",", 
+                 RowBox[{"Length", "[", "summaryA", "]"}], ",", 
+                 RowBox[{
+                  RowBox[{"Length", "[", "summaryA", "]"}], "-", 
+                  RowBox[{"Length", "[", "summaryA2", "]"}]}]}], "]"}]}], 
+              "]"}], ";"}], "*)"}], "\[IndentingNewLine]", 
+           RowBox[{"If", "[", 
+            RowBox[{
+             RowBox[{"OptionValue", "[", "\"\<tweet for real\>\"", "]"}], ",", 
+             RowBox[{"Map", "[", 
+              RowBox[{
+               RowBox[{
+                RowBox[{"(", 
+                 RowBox[{"(*", 
+                  RowBox[{
+                   RowBox[{"PrintTemporary", "[", 
+                    RowBox[{"\"\<#[[\\\"TweetID\\\"]]: \>\"", ",", 
+                    RowBox[{"#", "[", 
+                    RowBox[{"[", "\"\<ID\>\"", "]"}], "]"}]}], "]"}], ";"}], 
+                  "*)"}], 
+                 RowBox[{
+                  RowBox[{"If", "[", 
+                   RowBox[{
+                    RowBox[{"KeyExistsQ", "[", 
+                    RowBox[{"#", ",", "\"\<Image\>\""}], "]"}], ",", 
+                    RowBox[{"ServiceExecute", "[", 
+                    RowBox[{"\"\<Twitter\>\"", ",", "\"\<ImageTweet\>\"", ",", 
+                    RowBox[{"{", 
+                    RowBox[{
+                    RowBox[{"\"\<Message\>\"", "\[Rule]", 
+                    RowBox[{"#", "[", 
+                    RowBox[{"[", "\"\<Out Message\>\"", "]"}], "]"}]}], ",", 
+                    RowBox[{"\"\<Image\>\"", "\[Rule]", 
+                    RowBox[{"#", "[", 
+                    RowBox[{"[", "\"\<Image\>\"", "]"}], "]"}]}], ",", 
+                    RowBox[{"\"\<InReplyToStatusID\>\"", "\[Rule]", 
+                    RowBox[{"#", "[", 
+                    RowBox[{"[", "\"\<ID\>\"", "]"}], "]"}]}]}], "}"}]}], 
+                    "]"}], ",", 
+                    RowBox[{"(*", " ", 
+                    RowBox[{"else", " ", "no", " ", "image"}], "*)"}], 
+                    "\[IndentingNewLine]", 
+                    RowBox[{"ServiceExecute", "[", 
+                    RowBox[{"\"\<Twitter\>\"", ",", "\"\<Tweet\>\"", ",", 
+                    RowBox[{"{", 
+                    RowBox[{
+                    RowBox[{"\"\<Message\>\"", "\[Rule]", 
+                    RowBox[{"#", "[", 
+                    RowBox[{"[", "\"\<Out Message\>\"", "]"}], "]"}]}], ",", 
+                    RowBox[{"\"\<InReplyToStatusID\>\"", "\[Rule]", 
+                    RowBox[{"#", "[", 
+                    RowBox[{"[", "\"\<ID\>\"", "]"}], "]"}]}]}], "}"}]}], 
+                    "]"}]}], "\[IndentingNewLine]", "]"}], ";", 
+                  "\[IndentingNewLine]", 
+                  RowBox[{"Message", "[", 
+                   RowBox[{
+                    RowBox[{"searchForText", "::", "summary"}], ",", 
+                    RowBox[{"#", "[", 
+                    RowBox[{"[", "\"\<ID\>\"", "]"}], "]"}], ",", 
+                    RowBox[{"#", "[", 
+                    RowBox[{"[", "\"\<Out Message\>\"", "]"}], "]"}]}], "]"}],
+                   ";", 
+                  RowBox[{"oldIDs", "=", 
+                   RowBox[{"Append", "[", 
+                    RowBox[{"oldIDs", ",", 
+                    RowBox[{"#", "[", 
+                    RowBox[{"[", "\"\<ID\>\"", "]"}], "]"}]}], "]"}]}], ";", 
+                  RowBox[{"Export", "[", 
+                   RowBox[{
+                    RowBox[{
+                    "OptionValue", "[", "\"\<response DB path\>\"", "]"}], 
+                    ",", "oldIDs"}], "]"}], ";"}], ")"}], "&"}], ",", 
+               RowBox[{"Select", "[", 
+                RowBox[{"summaryA", ",", 
+                 RowBox[{
+                  RowBox[{"!", 
+                   RowBox[{"#", "[", 
+                    RowBox[{"[", "\"\<already responded to\>\"", "]"}], 
+                    "]"}]}], "&"}]}], "]"}]}], "]"}], ",", 
+             "\[IndentingNewLine]", 
+             RowBox[{"(*", 
+              RowBox[{
+              "else", " ", "not", " ", "tweeting", " ", "for", " ", "real"}], 
+              "*)"}], "\[IndentingNewLine]", 
+             RowBox[{"Select", "[", 
+              RowBox[{"summaryA", ",", 
+               RowBox[{
+                RowBox[{"#", "[", 
+                 RowBox[{"[", "\"\<game on?\>\"", "]"}], "]"}], "&"}]}], 
+              "]"}]}], "\[IndentingNewLine]", "]"}]}], "\[IndentingNewLine]", 
+          "]"}]}]}], "\[IndentingNewLine]", "]"}]}]}], "\[IndentingNewLine]", 
+    "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"searchForText", "::", "noHits"}], "=", "\"\<no hits.\>\""}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"searchForText", "::", "hitsButOld"}], "=", 
+   "\"\<`1` hits but `2` have already been responded too.\>\""}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"searchForText", "::", "err"}], "=", 
+   "\"\<Could not generate a tweet because of error \\\"`1`\\\"\>\""}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"searchForText", "::", "summary"}], "=", 
+   "\"\<Responding to tweet `1` with `2`\>\""}], ";"}]}], "Input",
+ InitializationCell->True,
+ CellChangeTimes->{{3.671030359328071*^9, 3.671030370533896*^9}, {
+   3.6710304101522417`*^9, 3.6710305247710733`*^9}, {3.6710307709563503`*^9, 
+   3.671030791356032*^9}, {3.6710308260650682`*^9, 3.671030914162738*^9}, {
+   3.671030953621369*^9, 3.6710309568454103`*^9}, {3.67103106814965*^9, 
+   3.671031136269309*^9}, {3.6710312123989*^9, 3.6710312784438457`*^9}, {
+   3.671031349131875*^9, 3.671031384456498*^9}, {3.6710314785354977`*^9, 
+   3.671031497713455*^9}, {3.671031626688553*^9, 3.671031644523925*^9}, {
+   3.671031674980974*^9, 3.6710317167667913`*^9}, {3.671031750149455*^9, 
+   3.671031759242322*^9}, {3.671050599936947*^9, 3.671050687251968*^9}, {
+   3.671065693789467*^9, 3.671065802078353*^9}, {3.671101497854293*^9, 
+   3.671101505388277*^9}, {3.671101607588513*^9, 3.671101681074374*^9}, {
+   3.6711018175948973`*^9, 3.671101834683511*^9}, {3.6711018929752703`*^9, 
+   3.671101928257791*^9}, {3.67110204367955*^9, 3.671102068543806*^9}, {
+   3.671102102716501*^9, 3.671102122995214*^9}, {3.6711022544326973`*^9, 
+   3.671102260608852*^9}, {3.671102510617276*^9, 3.6711025492822247`*^9}, {
+   3.671102611270774*^9, 3.671102644099365*^9}, {3.671102711594993*^9, 
+   3.6711027518917427`*^9}, {3.6711027833527317`*^9, 
+   3.6711028314703827`*^9}, {3.6711028817660847`*^9, 3.671103020777128*^9}, {
+   3.671103053657728*^9, 3.671103152596768*^9}, {3.671103210754676*^9, 
+   3.671103253562971*^9}, {3.671103287967585*^9, 3.6711033654307528`*^9}, {
+   3.6711034983382063`*^9, 3.6711035371183567`*^9}, {3.6711035689051*^9, 
+   3.6711036084218273`*^9}, {3.671104002877041*^9, 3.671104003496005*^9}, {
+   3.671104060428986*^9, 3.671104082345826*^9}, {3.671104129141439*^9, 
+   3.671104235990726*^9}, {3.6711250118076153`*^9, 3.671125065583321*^9}, {
+   3.671125171191021*^9, 3.6711251764865303`*^9}, {3.671125481308103*^9, 
+   3.671125582398368*^9}, {3.671125615531686*^9, 3.671125631505085*^9}, {
+   3.671125667017108*^9, 3.6711257155663633`*^9}, {3.671125950627832*^9, 
+   3.671125956778199*^9}, {3.671126013998355*^9, 3.671126020600378*^9}, {
+   3.671126132431806*^9, 3.67112613712421*^9}, {3.671126286866228*^9, 
+   3.671126307398758*^9}, {3.671126387140505*^9, 3.671126411317803*^9}, {
+   3.6711265146738853`*^9, 3.671126559046741*^9}, {3.671126668143156*^9, 
+   3.67112673224898*^9}, {3.671126777840961*^9, 3.671126908144465*^9}, {
+   3.671127039140551*^9, 3.671127103883857*^9}, {3.671127186413769*^9, 
+   3.671127186789831*^9}, 3.671127237492778*^9, {3.671127394034185*^9, 
+   3.671127407710874*^9}, {3.671127473651561*^9, 3.6711275134144497`*^9}, {
+   3.6711275933326807`*^9, 3.671127691404207*^9}, {3.6711277614717627`*^9, 
+   3.6711277830687923`*^9}, {3.671127848856913*^9, 3.671127856899626*^9}, 
+   3.6711281588986588`*^9, {3.6711282134172983`*^9, 3.671128214507324*^9}, {
+   3.6711283476679564`*^9, 3.671128356733556*^9}, {3.6711284712251663`*^9, 
+   3.6711285091270514`*^9}, {3.671128687374744*^9, 3.671128707125293*^9}, {
+   3.671128952805893*^9, 3.6711289641862803`*^9}, {3.6711291796711607`*^9, 
+   3.671129191914734*^9}, {3.6711409193018436`*^9, 3.671140957413776*^9}, {
+   3.671140999292654*^9, 3.671141164529591*^9}, {3.671237340117899*^9, 
+   3.671237359496664*^9}, 3.6713132278874607`*^9, {3.671313330467514*^9, 
+   3.6713134040917063`*^9}, {3.671313505794455*^9, 3.6713136425391397`*^9}, {
+   3.6713137113365593`*^9, 3.671313712319824*^9}, {3.6713988710636272`*^9, 
+   3.671398874987996*^9}, {3.671398907127096*^9, 3.671398908106463*^9}, {
+   3.6713990863425713`*^9, 3.6713990961573267`*^9}, {3.671402881841964*^9, 
+   3.671402882952355*^9}, {3.671402920510306*^9, 3.671402929082736*^9}, {
+   3.671403479512919*^9, 3.671403562568242*^9}, {3.722904613054688*^9, 
+   3.722904613064126*^9}, {3.72290480906629*^9, 3.722904819107436*^9}, {
+   3.722904888501669*^9, 3.72290492754458*^9}, {3.722905135008404*^9, 
+   3.72290522939215*^9}, {3.722905265642324*^9, 3.722905266456533*^9}, {
+   3.7229053225037937`*^9, 3.7229053310651093`*^9}, {3.72295798275876*^9, 
+   3.722957984207802*^9}, {3.722959543634283*^9, 3.722959550199744*^9}, {
+   3.722959602946888*^9, 3.72295960421319*^9}, 3.722959741109598*^9, {
+   3.7229597792849483`*^9, 3.722959785000185*^9}, {3.722959837325672*^9, 
+   3.722959869755073*^9}, {3.722959907024968*^9, 3.7229599091890383`*^9}, {
+   3.722960402980406*^9, 3.7229604500866823`*^9}, {3.722960497889185*^9, 
+   3.722960528362685*^9}, {3.72296060655964*^9, 3.7229607647396507`*^9}, {
+   3.722960894433033*^9, 3.72296090465175*^9}, {3.722960949406259*^9, 
+   3.72296095720453*^9}, {3.722960995264641*^9, 3.722961003730645*^9}, {
+   3.722962419460349*^9, 3.722962472461071*^9}, {3.722962738798304*^9, 
+   3.722962852468947*^9}, 3.722963064369693*^9, {3.7229632192510653`*^9, 
+   3.7229633584964037`*^9}, {3.722963396384012*^9, 3.722963401640605*^9}, {
+   3.7229635533677673`*^9, 3.7229635892628593`*^9}, {3.72296375468097*^9, 
+   3.722963835124394*^9}, {3.722963867774673*^9, 3.722963876010289*^9}, {
+   3.7229826449888887`*^9, 3.722982743657851*^9}, {3.722982870702631*^9, 
+   3.7229829241091013`*^9}, {3.722982971063105*^9, 3.722983055532751*^9}, {
+   3.722983978811913*^9, 3.7229839937772713`*^9}, 3.722984031370235*^9, {
+   3.72298429462094*^9, 3.722984301237299*^9}, {3.7229843363167553`*^9, 
+   3.722984356339464*^9}, {3.722984422401471*^9, 3.7229844313244762`*^9}, 
+   3.7229867380261097`*^9, {3.7229872321394997`*^9, 3.722987251705696*^9}, {
+   3.722987538357696*^9, 3.7229875508856773`*^9}, {3.722987605110585*^9, 
+   3.722987735387372*^9}, {3.722987903502602*^9, 3.722987951633116*^9}, {
+   3.722988026619725*^9, 3.722988044931924*^9}, {3.72298815038376*^9, 
+   3.72298819945743*^9}, {3.722988557280744*^9, 3.722988685117785*^9}, 
+   3.722988727891943*^9, {3.7229887957466297`*^9, 3.722988804207206*^9}, {
+   3.722988852277944*^9, 3.7229888679252567`*^9}, {3.722988934405662*^9, 
+   3.722989071169676*^9}, {3.722989124556367*^9, 3.7229891991878557`*^9}, {
+   3.722989237660531*^9, 3.722989250477714*^9}, 3.72298948450809*^9, {
+   3.722989919487321*^9, 3.7229899228001328`*^9}, {3.722989970624967*^9, 
+   3.7229899826484213`*^9}, {3.722990037833563*^9, 3.722990070229755*^9}, {
+   3.722990360298224*^9, 3.722990365528384*^9}, {3.722990435721869*^9, 
+   3.722990440070829*^9}, {3.7229915758038673`*^9, 3.722991578068735*^9}, {
+   3.722991687624107*^9, 3.72299182102743*^9}, {3.722991855966838*^9, 
+   3.722991894086027*^9}, 3.722992404359108*^9, {3.722992494242826*^9, 
+   3.722992524367998*^9}, {3.722992716611704*^9, 3.722992724662509*^9}, 
+   3.722993211465002*^9, {3.722994134935377*^9, 3.7229941451443367`*^9}, {
+   3.724279588507369*^9, 3.724279796050906*^9}, {3.724372866386218*^9, 
+   3.724372915556349*^9}, {3.724373189665577*^9, 3.7243732301410227`*^9}, {
+   3.724373964018395*^9, 3.7243739895163927`*^9}, {3.7243740868844767`*^9, 
+   3.7243741069271517`*^9}, {3.724375196278041*^9, 3.724375211160446*^9}, {
+   3.724435517836852*^9, 3.7244355545815363`*^9}, 3.724435649708323*^9, {
+   3.724435701744605*^9, 3.724435739933771*^9}, {3.724435809365972*^9, 
+   3.724435842571033*^9}, {3.72443604614439*^9, 3.724436086408338*^9}, {
+   3.724447068142233*^9, 3.724447164167425*^9}, {3.724447253077249*^9, 
+   3.724447298148682*^9}, {3.7244477172442007`*^9, 3.724447731939301*^9}, 
+   3.724842159658977*^9, 3.724842259740539*^9, {3.724842309079258*^9, 
+   3.7248423304460793`*^9}, 3.724842555226913*^9, {3.724842589160256*^9, 
+   3.724842650292301*^9}, {3.724842885904711*^9, 3.724842926145027*^9}, {
+   3.724843032552929*^9, 3.724843083936249*^9}, {3.7248431469422703`*^9, 
+   3.724843149868043*^9}, {3.7248881670600863`*^9, 3.724888167433661*^9}, {
+   3.724888307922427*^9, 3.724888327848186*^9}, {3.7248884086061983`*^9, 
+   3.7248884420299892`*^9}, {3.72488859987792*^9, 3.724888689126975*^9}, {
+   3.724890465463529*^9, 3.72489047067791*^9}, {3.7248906047994547`*^9, 
+   3.724890686719388*^9}, {3.724890718473009*^9, 3.724890722639682*^9}, {
+   3.724890830614246*^9, 3.724890888741191*^9}, {3.72489096370964*^9, 
+   3.72489102332211*^9}, {3.7248910925538883`*^9, 3.724891163014186*^9}, {
+   3.724891453726659*^9, 3.724891468502997*^9}, {3.724891498544272*^9, 
+   3.724891529889453*^9}, {3.724891575391692*^9, 3.724891611300865*^9}, {
+   3.724891760198904*^9, 3.7248918040139303`*^9}, 3.724892145984849*^9, {
+   3.7248922173437033`*^9, 3.724892224464282*^9}, 3.724892502735095*^9, {
+   3.724892916218211*^9, 3.724892918179878*^9}, {3.724892981771261*^9, 
+   3.724893007099148*^9}, 3.724893136185787*^9, {3.724893272521606*^9, 
+   3.724893285647148*^9}, {3.724893471471366*^9, 3.7248935108512774`*^9}},
+ ExpressionUUID -> "b325a223-bebc-4993-a294-60fcfbe453bc"]
+}, Closed]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["usage", "Section",
+ CellChangeTimes->{{3.671019821407844*^9, 3.6710198235690727`*^9}, {
+  3.726482302249166*^9, 
+  3.726482302787036*^9}},ExpressionUUID->"1feec8e5-f5ab-48ac-81b0-\
+b94da65ccd52"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"twitter", "=", 
+    RowBox[{"ServiceConnect", "[", 
+     RowBox[{"\"\<Twitter\>\"", ",", "\"\<New\>\""}], "]"}]}], ";"}], 
+  RowBox[{"(*", " ", 
+   RowBox[{
+    RowBox[{"run", " ", "to", " ", "authenticate", " ", "the", " ", 
+     RowBox[{"bot", ".", " ", "If"}], " ", "you", " ", "have", " ", 
+     "multiple", " ", "twitter", " ", "accounts"}], ",", " ", 
+    RowBox[{"you", " ", "may", " ", "want", " ", "to", " ", "run", " ", 
+     RowBox[{"ServiceExecute", "[", 
+      RowBox[{"twitter", ",", "\"\<UserData\>\""}], "]"}], " ", "to", " ", 
+     "make", " ", "sure", " ", 
+     RowBox[{"you", "'"}], "ve", " ", "logged", " ", "in", " ", "as", " ", 
+     "the", " ", "correct", " ", 
+     RowBox[{"one", "."}]}]}], " ", "*)"}]}]], "Input",
+ CellChangeTimes->{{3.726482232596696*^9, 
+  3.7264822576299963`*^9}},ExpressionUUID->"9d94b423-060a-4baf-9f42-\
+974a25ad80ae"],
+
+Cell[BoxData[
+ RowBox[{"twitTask", "=", 
+  RowBox[{"RunScheduledTask", "[", 
+   RowBox[{
+    RowBox[{"Quiet", "@", 
+     RowBox[{"searchForText", "[", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"\"\<#24sCheck\>\"", ",", "\"\<#24sTest\>\""}], "}"}], ",", 
+       "twitter", ",", 
+       RowBox[{"\"\<tweet for real\>\"", "\[Rule]", "True"}]}], "]"}]}], ",", 
+    "20"}], "]"}], " ", 
+  RowBox[{"(*", " ", 
+   RowBox[{
+    RowBox[{
+    "checks", " ", "every", " ", "20", " ", "seconds", " ", "for", " ", "two",
+      " ", "different", " ", "hashtags"}], ",", " ", 
+    RowBox[{
+    "looks", " ", "for", " ", "a", " ", "24", "s", " ", "hand", " ", "in", 
+     " ", "any", " ", "tweets", " ", "it", " ", "finds"}], ",", " ", 
+    RowBox[{"and", " ", "responds", " ", "to", " ", 
+     RowBox[{"them", "."}]}]}], " ", "*)"}]}]], "Input",
+ CellChangeTimes->{{3.6710198337092123`*^9, 3.6710198359719954`*^9}, 
+   3.671395994636772*^9, 3.722961192646282*^9, {3.722961888611333*^9, 
+   3.722961889063056*^9}, {3.722962117560107*^9, 3.722962119200047*^9}, {
+   3.722962160064156*^9, 3.722962160529085*^9}, {3.722964250948545*^9, 
+   3.722964252891719*^9}, 3.722988480995468*^9, {3.722991318485079*^9, 
+   3.7229913188587093`*^9}, {3.724287364031858*^9, 3.724287365753895*^9}, {
+   3.724438050060445*^9, 3.724438055809311*^9}, 3.7244452929152603`*^9, {
+   3.724447404784766*^9, 3.724447405216305*^9}, {3.7264824024915247`*^9, 
+   3.72648244878778*^9}},ExpressionUUID->"f6e2f4c6-e7a8-44b4-87b5-\
+0ce36e70be8e"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{
+    RowBox[{"execute", " ", "this", " ", "when", " ", 
+     RowBox[{"you", "'"}], "re", " ", "done"}], ",", " ", 
+    RowBox[{
+    "or", " ", "just", " ", "quit", " ", "the", " ", "Mathematica", " ", 
+     "kernel"}]}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{"RemoveScheduledTask", "/@", 
+   RowBox[{"ScheduledTasks", "[", "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.7229810452548847`*^9, 3.722981049233556*^9}, {
+  3.7264824714064703`*^9, 
+  3.726482495168333*^9}},ExpressionUUID->"d7ae79f5-0664-4f0f-a6cb-\
+dbf55a70283d"]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{907, 681},
+WindowMargins->{{Automatic, 328}, {109, Automatic}},
+WindowStatusArea->None,
+Magnification:>0.75 Inherited,
+FrontEndVersion->"11.3 for Mac OS X x86 (32-bit, 64-bit Kernel) (January 23, \
+2018)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 218, 4, 75, "Title",ExpressionUUID->"6069a9b9-dddd-45c8-abe7-2f29dc9d1dee"],
+Cell[801, 28, 206, 4, 27, "Text",ExpressionUUID->"1612a60c-078c-4e5a-b0b0-b056b66cab6f"],
+Cell[CellGroupData[{
+Cell[1032, 36, 150, 3, 51, "Section",ExpressionUUID->"eb4bacf3-7368-411d-b4ab-ccdaead1e65f"],
+Cell[1185, 41, 1696, 30, 192, "Text",ExpressionUUID->"e4104106-4387-41e7-952d-09cd05ea248a"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[2918, 76, 153, 3, 51, "Section",ExpressionUUID->"197a8161-0588-486c-9bba-b3f0d0432fd8"],
+Cell[CellGroupData[{
+Cell[3096, 83, 250, 4, 41, "Subsection",ExpressionUUID->"0e3301ad-f1a4-475b-9cc3-36613c00994c"],
+Cell[3349, 89, 3013, 81, 181, "Input",ExpressionUUID->"63b79fb5-f7ba-4b7b-8f20-42f8bef61732",
+ InitializationCell->True],
+Cell[6365, 172, 1011, 25, 53, "Input",ExpressionUUID->"9ba84227-55fe-4627-8518-4e0dab5be1a4",
+ InitializationCell->True],
+Cell[7379, 199, 2065, 55, 117, "Input",ExpressionUUID->"b40c7703-8c43-4836-9905-e1298fbfdd53",
+ InitializationCell->True],
+Cell[9447, 256, 7798, 185, 453, "Input",ExpressionUUID->"97e4a861-bb6e-4ab9-a1cd-8908d0db9777",
+ InitializationCell->True]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[17282, 446, 252, 4, 41, "Subsection",ExpressionUUID->"faca04a3-c57d-4b1d-9a07-7cf52e569d74"],
+Cell[17537, 452, 41188, 886, 1431, "Input",ExpressionUUID->"b325a223-bebc-4993-a294-60fcfbe453bc",
+ InitializationCell->True]
+}, Closed]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[58774, 1344, 201, 4, 51, "Section",ExpressionUUID->"1feec8e5-f5ab-48ac-81b0-b94da65ccd52"],
+Cell[58978, 1350, 916, 20, 41, "Input",ExpressionUUID->"9d94b423-060a-4baf-9f42-974a25ad80ae"],
+Cell[59897, 1372, 1507, 31, 41, "Input",ExpressionUUID->"f6e2f4c6-e7a8-44b4-87b5-0ce36e70be8e"],
+Cell[61407, 1405, 588, 14, 41, "Input",ExpressionUUID->"d7ae79f5-0664-4f0f-a6cb-dbf55a70283d"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
