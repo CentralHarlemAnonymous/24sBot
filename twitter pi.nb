@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     64157,       1471]
-NotebookOptionsPosition[     62023,       1423]
-NotebookOutlinePosition[     62437,       1441]
-CellTagsIndexPosition[     62394,       1438]
+NotebookDataLength[     58513,       1350]
+NotebookOptionsPosition[     56379,       1302]
+NotebookOutlinePosition[     56793,       1320]
+CellTagsIndexPosition[     56750,       1317]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -327,7 +327,6 @@ Cell[BoxData[{
    RowBox[{"Options", "[", "showAnswer", "]"}], "=", 
    RowBox[{"{", 
     RowBox[{
-     RowBox[{"\"\<noisy\>\"", "\[Rule]", "False"}], ",", 
      RowBox[{"\"\<output\>\"", "\[Rule]", "Length"}], ",", 
      RowBox[{"\"\<pixNo\>\"", "\[Rule]", "Automatic"}], ",", 
      RowBox[{"\"\<simplePath\>\"", "\[Rule]", 
@@ -362,12 +361,6 @@ Cell[BoxData[{
          "\"\<fancy\>\"", ",", 
          RowBox[{"OptionValue", "[", "\"\<fancyPath\>\"", "]"}]}], "]"}]}], 
       ";", "\[IndentingNewLine]", 
-      RowBox[{"If", "[", 
-       RowBox[{
-        RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
-        RowBox[{"Print", "[", 
-         RowBox[{"\"\<path: \>\"", ",", "path"}], "]"}]}], "]"}], ";", 
-      "\[IndentingNewLine]", 
       RowBox[{"SetDirectory", "[", "path", "]"}], ";", "\[IndentingNewLine]", 
       RowBox[{"regex", "=", 
        RowBox[{"namifier", "[", 
@@ -375,21 +368,9 @@ Cell[BoxData[{
          RowBox[{"Sort", "[", "combo", "]"}], ",", 
          RowBox[{"\"\<suffix\>\"", "\[Rule]", "\"\<\>\""}]}], "]"}]}], ";", 
       "\[IndentingNewLine]", 
-      RowBox[{"If", "[", 
-       RowBox[{
-        RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
-        RowBox[{"Print", "[", 
-         RowBox[{"\"\<regex: \>\"", ",", "regex"}], "]"}]}], "]"}], ";", 
-      "\[IndentingNewLine]", 
       RowBox[{"namen", "=", 
        RowBox[{"FileNames", "[", 
         RowBox[{"regex", "<>", "\"\<*\>\""}], "]"}]}], ";", 
-      "\[IndentingNewLine]", 
-      RowBox[{"If", "[", 
-       RowBox[{
-        RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
-        RowBox[{"Print", "[", 
-         RowBox[{"\"\<namen: \>\"", ",", "namen"}], "]"}]}], "]"}], ";", 
       "\[IndentingNewLine]", 
       RowBox[{"Switch", "[", 
        RowBox[{
@@ -413,15 +394,7 @@ Cell[BoxData[{
           RowBox[{
            RowBox[{
             RowBox[{"Length", "[", "namen", "]"}], ">", "0"}], ",", 
-           RowBox[{
-            RowBox[{"If", "[", 
-             RowBox[{
-              RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
-              RowBox[{"Print", "[", 
-               RowBox[{"\"\<pixpath: \>\"", ",", "pixpath"}], "]"}]}], "]"}], 
-            ";", 
-            RowBox[{"Import", "[", "pixpath", "]"}]}]}], "]"}]}], ",", "_", 
-        ",", 
+           RowBox[{"Import", "[", "pixpath", "]"}]}], "]"}]}], ",", "_", ",", 
         RowBox[{"\"\<I dunno what '\>\"", "<>", 
          RowBox[{"OptionValue", "[", "\"\<output\>\"", "]"}], "<>", 
          "\"\<' is.\>\""}]}], "\[IndentingNewLine]", "]"}]}]}], 
@@ -438,9 +411,10 @@ Cell[BoxData[{
    3.722956533952426*^9, {3.722956690722332*^9, 3.722956704555188*^9}, {
    3.7229615842243433`*^9, 3.7229615970787*^9}, {3.722961640384673*^9, 
    3.722961700799479*^9}, {3.722961758352654*^9, 3.722961770375135*^9}, 
-   3.724434655978957*^9},ExpressionUUID->"97e4a861-bb6e-4ab9-a1cd-\
+   3.724434655978957*^9, {3.7266586250003138`*^9, 3.726658653612898*^9}, 
+   3.726658733552053*^9},ExpressionUUID->"97e4a861-bb6e-4ab9-a1cd-\
 8908d0db9777"]
-}, Open  ]],
+}, Closed]],
 
 Cell[CellGroupData[{
 
@@ -679,7 +653,6 @@ rules at http://www.wheels.org/monkeywrench/?page_id=882\>\""}]}], "|>"}],
              RowBox[{"tweet", "[", 
               RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], ",", 
              "\"\<simple\>\"", ",", 
-             RowBox[{"\"\<noisy\>\"", "\[Rule]", "False"}], ",", 
              RowBox[{"\"\<output\>\"", "\[Rule]", "\"\<one pix\>\""}]}], 
             "]"}]}]}], "|>"}], ",", "\[IndentingNewLine]", 
         RowBox[{"(*", "fancy", "*)"}], 
@@ -705,7 +678,6 @@ one.\>\""}]}], ",",
              RowBox[{"tweet", "[", 
               RowBox[{"[", "\"\<numbers\>\"", "]"}], "]"}], ",", 
              "\"\<fancy\>\"", ",", 
-             RowBox[{"\"\<noisy\>\"", "\[Rule]", "False"}], ",", 
              RowBox[{"\"\<output\>\"", "\[Rule]", "\"\<one pix\>\""}]}], 
             "]"}]}]}], "|>"}], ",", "\[IndentingNewLine]", 
         RowBox[{"(*", 
@@ -759,10 +731,8 @@ one.\>\""}]}], ",",
    RowBox[{"Options", "[", "searchForText", "]"}], "=", 
    RowBox[{"{", 
     RowBox[{
-     RowBox[{"\"\<noisy\>\"", "\[Rule]", "\"\<False\>\""}], ",", 
      RowBox[{"\"\<tweet for real\>\"", "\[Rule]", "False"}], ",", 
      RowBox[{"\"\<count\>\"", "\[Rule]", "50"}], ",", 
-     RowBox[{"\"\<noisy count\>\"", "\[Rule]", "1"}], ",", 
      RowBox[{"\"\<response DB path\>\"", "\[Rule]", 
       RowBox[{"FileNameJoin", "[", 
        RowBox[{"{", 
@@ -821,12 +791,6 @@ one.\>\""}]}], ",",
             RowBox[{
              RowBox[{"Length", "[", "#", "]"}], ">", "0"}], "&"}]}], "]"}]}], 
         "]"}]}], ";", "\[IndentingNewLine]", 
-      RowBox[{"If", "[", 
-       RowBox[{
-        RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
-        RowBox[{"Print", "[", 
-         RowBox[{"\"\<rawSearch: \>\"", ",", "rawSearch"}], "]"}]}], "]"}], 
-      ";", "\[IndentingNewLine]", 
       RowBox[{"rawSearch", "=", 
        RowBox[{"If", "[", 
         RowBox[{
@@ -857,24 +821,6 @@ one.\>\""}]}], ",",
       RowBox[{"If", "[", 
        RowBox[{"ok", ",", "\[IndentingNewLine]", 
         RowBox[{
-         RowBox[{"n", "=", 
-          RowBox[{"OptionValue", "[", "\"\<noisy count\>\"", "]"}]}], ";", 
-         "\[IndentingNewLine]", 
-         RowBox[{"(*", 
-          RowBox[{
-           RowBox[{"If", "[", 
-            RowBox[{
-             RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
-             RowBox[{"Print", "[", 
-              RowBox[{"\"\<rawSearch returned \>\"", ",", 
-               RowBox[{"ToString", "[", 
-                RowBox[{"Length", "[", "rawSearch", "]"}], "]"}], ",", 
-               "\"\< hits. rawSearch[[first \>\"", ",", 
-               RowBox[{"ToString", "@", "n"}], ",", "\"\<]]: \>\"", ",", 
-               RowBox[{"Take", "[", 
-                RowBox[{"rawSearch", ",", 
-                 RowBox[{"UpTo", "[", "n", "]"}]}], "]"}]}], "]"}]}], "]"}], 
-           ";"}], "*)"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
          RowBox[{"summaryA", "=", 
           RowBox[{"Map", "[", 
            RowBox[{
@@ -909,14 +855,7 @@ one.\>\""}]}], ",",
               RowBox[{"#", "[", 
                RowBox[{"[", "\"\<already responded to\>\"", "]"}], "]"}]}], 
              "&"}]}], "]"}]}], ";", "\[IndentingNewLine]", 
-         RowBox[{"If", "[", 
-          RowBox[{
-           RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
-           RowBox[{"Print", "[", 
-            RowBox[{
-             RowBox[{"Length", "[", "summaryA", "]"}], ",", 
-             "\"\< tweet(s) not yet responded to.\>\""}], "]"}]}], "]"}], ";",
-          "\[IndentingNewLine]", "\[IndentingNewLine]", 
+         "\[IndentingNewLine]", 
          RowBox[{"semanticNumbers", "=", 
           RowBox[{"Map", "[", 
            RowBox[{
@@ -939,16 +878,6 @@ one.\>\""}]}], ",",
           RowBox[{
           "will", " ", "strip", " ", "out", " ", "all", " ", "sorts", " ", 
            "of", " ", "stuff"}], " ", "*)"}], "\[IndentingNewLine]", 
-         RowBox[{"If", "[", 
-          RowBox[{
-           RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
-           RowBox[{"Print", "[", 
-            RowBox[{"\"\<semantic numbers[[first \>\"", ",", 
-             RowBox[{"ToString", "@", "n"}], ",", "\"\<]]: \>\"", ",", 
-             RowBox[{"Take", "[", 
-              RowBox[{"semanticNumbers", ",", 
-               RowBox[{"UpTo", "[", "n", "]"}]}], "]"}]}], "]"}]}], "]"}], 
-         ";", "\[IndentingNewLine]", 
          RowBox[{"summaryA", "=", 
           RowBox[{"MapThread", "[", 
            RowBox[{
@@ -960,16 +889,6 @@ one.\>\""}]}], ",",
               "&"}], ",", 
             RowBox[{"{", 
              RowBox[{"summaryA", ",", "semanticNumbers"}], "}"}]}], "]"}]}], 
-         ";", "\[IndentingNewLine]", 
-         RowBox[{"If", "[", 
-          RowBox[{
-           RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
-           RowBox[{"Print", "[", 
-            RowBox[{"\"\<summary association[[first \>\"", ",", 
-             RowBox[{"ToString", "@", "n"}], ",", "\"\<]]a: \>\"", ",", 
-             RowBox[{"Take", "[", 
-              RowBox[{"summaryA", ",", 
-               RowBox[{"UpTo", "[", "n", "]"}]}], "]"}]}], "]"}]}], "]"}], 
          ";", "\[IndentingNewLine]", 
          RowBox[{"(*", " ", 
           RowBox[{"game", " ", 
@@ -1007,16 +926,6 @@ one.\>\""}]}], ",",
                     "&"}]}], "]"}], "]"}], "==", "4"}]}], ",", "True", ",", 
                   "False"}], "]"}]}]}], "]"}], "&"}], ",", "summaryA"}], 
            "]"}]}], ";", "\[IndentingNewLine]", 
-         RowBox[{"If", "[", 
-          RowBox[{
-           RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
-           RowBox[{"Print", "[", 
-            RowBox[{"\"\<summary association[[first \>\"", ",", 
-             RowBox[{"ToString", "@", "n"}], ",", "\"\<]]b: \>\"", ",", 
-             RowBox[{"Take", "[", 
-              RowBox[{"summaryA", ",", 
-               RowBox[{"UpTo", "[", "n", "]"}]}], "]"}]}], "]"}]}], "]"}], 
-         ";", "\[IndentingNewLine]", 
          RowBox[{"(*", 
           RowBox[{
           "appends", " ", "simple", " ", "and", " ", "fancy", " ", "solution",
@@ -1042,16 +951,6 @@ one.\>\""}]}], ",",
                RowBox[{"searchForText", "::", "err"}], ",", 
                "\"\<summaryA not a Vector after check24sReport[]\>\""}], 
               "]"}], ";", "False"}]}], "]"}]}], ";", 
-         RowBox[{"If", "[", 
-          RowBox[{
-           RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
-           RowBox[{"Print", "[", 
-            RowBox[{"\"\<summary association[[first \>\"", ",", 
-             RowBox[{"ToString", "@", "n"}], ",", "\"\<]]c: \>\"", ",", 
-             RowBox[{"Take", "[", 
-              RowBox[{"summaryA", ",", 
-               RowBox[{"UpTo", "[", "n", "]"}]}], "]"}]}], "]"}]}], "]"}], 
-         ";", "\[IndentingNewLine]", 
          RowBox[{"(*", " ", 
           RowBox[{"craft", " ", "message"}], " ", "*)"}], 
          "\[IndentingNewLine]", 
@@ -1082,22 +981,7 @@ one.\>\""}]}], ",",
                RowBox[{"searchForText", "::", "err"}], ",", 
                "\"\<summaryA not a vector after craftMessage[]. \>\""}], 
               "]"}], ";", "False"}]}], "]"}]}], ";", "\[IndentingNewLine]", 
-         RowBox[{"If", "[", 
-          RowBox[{
-           RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
-           RowBox[{"Print", "[", 
-            RowBox[{"\"\<summary association[[first \>\"", ",", 
-             RowBox[{"ToString", "@", "n"}], ",", "\"\<]]d: \>\"", ",", 
-             RowBox[{"Take", "[", 
-              RowBox[{"summaryA", ",", 
-               RowBox[{"UpTo", "[", "n", "]"}]}], "]"}]}], "]"}]}], "]"}], 
-         ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
-         RowBox[{"If", "[", 
-          RowBox[{
-           RowBox[{"OptionValue", "[", "\"\<noisy\>\"", "]"}], ",", 
-           RowBox[{"Print", "[", 
-            RowBox[{"\"\<final summaryA: \>\"", ",", "summaryA"}], "]"}]}], 
-          "]"}], ";", "\[IndentingNewLine]", 
+         "\[IndentingNewLine]", 
          RowBox[{"If", "[", 
           RowBox[{"ok", ",", "\[IndentingNewLine]", 
            RowBox[{"(*", 
@@ -1122,13 +1006,6 @@ one.\>\""}]}], ",",
               RowBox[{
                RowBox[{
                 RowBox[{"(", 
-                 RowBox[{"(*", 
-                  RowBox[{
-                   RowBox[{"PrintTemporary", "[", 
-                    RowBox[{"\"\<#[[\\\"TweetID\\\"]]: \>\"", ",", 
-                    RowBox[{"#", "[", 
-                    RowBox[{"[", "\"\<ID\>\"", "]"}], "]"}]}], "]"}], ";"}], 
-                  "*)"}], 
                  RowBox[{
                   RowBox[{"If", "[", 
                    RowBox[{
@@ -1335,8 +1212,10 @@ one.\>\""}]}], ",",
    3.7248922173437033`*^9, 3.724892224464282*^9}, 3.724892502735095*^9, {
    3.724892916218211*^9, 3.724892918179878*^9}, {3.724892981771261*^9, 
    3.724893007099148*^9}, 3.724893136185787*^9, {3.724893272521606*^9, 
-   3.724893285647148*^9}, {3.724893471471366*^9, 3.7248935108512774`*^9}},
- ExpressionUUID -> "b325a223-bebc-4993-a294-60fcfbe453bc"]
+   3.724893285647148*^9}, {3.724893471471366*^9, 3.7248935108512774`*^9}, {
+   3.7266586632227592`*^9, 
+   3.7266587470117483`*^9}},ExpressionUUID->"b325a223-bebc-4993-a294-\
+60fcfbe453bc"]
 }, Closed]]
 }, Open  ]],
 
@@ -1422,7 +1301,7 @@ dbf55a70283d"]
 }, Open  ]]
 },
 WindowSize->{907, 681},
-WindowMargins->{{Automatic, 328}, {109, Automatic}},
+WindowMargins->{{677, Automatic}, {540, Automatic}},
 WindowStatusArea->None,
 Magnification:>0.75 Inherited,
 FrontEndVersion->"11.3 for Mac OS X x86 (32-bit, 64-bit Kernel) (January 23, \
@@ -1457,20 +1336,20 @@ Cell[6365, 172, 1011, 25, 53, "Input",ExpressionUUID->"9ba84227-55fe-4627-8518-4
  InitializationCell->True],
 Cell[7379, 199, 2065, 55, 117, "Input",ExpressionUUID->"b40c7703-8c43-4836-9905-e1298fbfdd53",
  InitializationCell->True],
-Cell[9447, 256, 7798, 185, 453, "Input",ExpressionUUID->"97e4a861-bb6e-4ab9-a1cd-8908d0db9777",
+Cell[9447, 256, 6795, 159, 291, "Input",ExpressionUUID->"97e4a861-bb6e-4ab9-a1cd-8908d0db9777",
  InitializationCell->True]
-}, Open  ]],
+}, Closed]],
 Cell[CellGroupData[{
-Cell[17282, 446, 252, 4, 41, "Subsection",ExpressionUUID->"faca04a3-c57d-4b1d-9a07-7cf52e569d74"],
-Cell[17537, 452, 41188, 886, 1431, "Input",ExpressionUUID->"b325a223-bebc-4993-a294-60fcfbe453bc",
+Cell[16279, 420, 252, 4, 30, "Subsection",ExpressionUUID->"faca04a3-c57d-4b1d-9a07-7cf52e569d74"],
+Cell[16534, 426, 36547, 791, 1717, "Input",ExpressionUUID->"b325a223-bebc-4993-a294-60fcfbe453bc",
  InitializationCell->True]
 }, Closed]]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[58774, 1344, 201, 4, 51, "Section",ExpressionUUID->"1feec8e5-f5ab-48ac-81b0-b94da65ccd52"],
-Cell[58978, 1350, 916, 20, 41, "Input",ExpressionUUID->"9d94b423-060a-4baf-9f42-974a25ad80ae"],
-Cell[59897, 1372, 1507, 31, 41, "Input",ExpressionUUID->"f6e2f4c6-e7a8-44b4-87b5-0ce36e70be8e"],
-Cell[61407, 1405, 588, 14, 41, "Input",ExpressionUUID->"d7ae79f5-0664-4f0f-a6cb-dbf55a70283d"]
+Cell[53130, 1223, 201, 4, 51, "Section",ExpressionUUID->"1feec8e5-f5ab-48ac-81b0-b94da65ccd52"],
+Cell[53334, 1229, 916, 20, 41, "Input",ExpressionUUID->"9d94b423-060a-4baf-9f42-974a25ad80ae"],
+Cell[54253, 1251, 1507, 31, 41, "Input",ExpressionUUID->"f6e2f4c6-e7a8-44b4-87b5-0ce36e70be8e"],
+Cell[55763, 1284, 588, 14, 41, "Input",ExpressionUUID->"d7ae79f5-0664-4f0f-a6cb-dbf55a70283d"]
 }, Open  ]]
 }, Open  ]]
 }
